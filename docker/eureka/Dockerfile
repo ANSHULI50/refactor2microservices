@@ -35,7 +35,7 @@ RUN apt-get install -y software-properties-common \
 
 RUN apt-get clean
 
-COPY ./image/discovery.jar /usr/war/
+COPY ./image/discovery.war /usr/war/
 
 COPY ./image/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
 

@@ -18,6 +18,7 @@ package com.ntw.oms.order.processor;
 
 import com.google.gson.Gson;
 import com.ntw.common.config.AppConfig;
+import com.ntw.common.config.EnvConfig;
 import com.ntw.common.config.ServiceID;
 import com.ntw.oms.order.entity.InventoryReservation;
 import com.ntw.oms.order.service.OrderServiceImpl;
@@ -29,9 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -44,7 +45,6 @@ import java.util.Map;
  */
 
 @Component
-@RibbonClient(name = "InventoryClient")
 public class InventoryClientImpl implements InventoryClient {
 
     // Unused with OkHttp connection
@@ -57,6 +57,9 @@ public class InventoryClientImpl implements InventoryClient {
     // tracer bean is created by the spring jaeger cloud library itself
     @Autowired
     private Tracer tracer;
+
+    @Autowired
+    private EnvConfig envConfig;
 
     //private static HttpClient client;
     private static OkHttpClient client;
@@ -77,16 +80,27 @@ public class InventoryClientImpl implements InventoryClient {
         this.loadBalancer = loadBalancer;
     }
 
+    private ServiceInstance getServiceInstance(String serviceId) {
+        Boolean useLoadBalancer = Boolean.parseBoolean(envConfig.getProperty("eureka.client.fetchRegistry"));
+        if (useLoadBalancer) {
+            return loadBalancer.choose(serviceId);
+        } else {
+            DefaultServiceInstance instance = new DefaultServiceInstance();
+            instance.setHost(envConfig.getProperty(new StringBuilder("service.").append(serviceId).append(".host").toString()));
+            instance.setPort(Integer.parseInt(envConfig.getProperty(new StringBuilder("service.").append(serviceId).append(".port").toString())));
+            return instance;
+        }
+    }
+
     @Override
     public boolean reserveInventory(InventoryReservation inventoryReservation) throws IOException {
-        ServiceInstance instance = getLoadBalancer().choose(ServiceID.InventorySvc.toString());
+        ServiceInstance instance = getServiceInstance(ServiceID.InventorySvc.toString());
         if (instance == null) {
-            logger.error("Unable to reserve inventory, as inventory service is not available");
-            throw new IOException("Inventory service is not available");
+            logger.error("Inventory service configuration not available. Unable to reserve inventory: {}", inventoryReservation);
+            return false;
         }
         StringBuilder url = new StringBuilder()
-                .append("http://").append(instance.getHost())
-                .append(":").append(instance.getPort())
+                .append("http://").append(instance.getHost()).append(":").append(instance.getPort())
                 .append(AppConfig.INVENTORY_RESOURCE_PATH)
                 .append(AppConfig.INVENTORY_RESERVATION_PATH);
         String invResJson = (new Gson()).toJson(inventoryReservation);

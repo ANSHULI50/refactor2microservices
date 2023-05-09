@@ -18,11 +18,11 @@ package com.ntw.oms.admin.api;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ntw.common.config.EnvConfig;
 import com.ntw.common.config.ServiceID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-@RibbonClient(name = "ApiClient")
 public class ApiClientFactory {
 
     @Autowired
@@ -38,6 +37,9 @@ public class ApiClientFactory {
 
     @Value("${GatewaySvc.client.cp.size:100}")
     private int httpClientPoolSize;
+
+    @Autowired
+    private EnvConfig envConfig;
 
     public ApiClient createApiClient(ServiceID serviceID,
                                         String authHeader) {
@@ -79,6 +81,7 @@ public class ApiClientFactory {
         apiClient.setLoadBalancer(loadBalancer);
         apiClient.setMapper(new ObjectMapper());
         apiClient.setClient(new HttpClient(httpClientPoolSize));
+        apiClient.setEnvConfig(envConfig);
         return apiClient;
     }
 

@@ -17,9 +17,9 @@
 package com.ntw.common.config;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.io.IOException;
@@ -40,22 +40,17 @@ public class EnvConfig {
 
     private Environment environment;
 
+    public EnvConfig(Environment environment) {
+        this.environment = environment;
+        logEnv();
+    }
+
     public Environment getEnvironment() {
         return environment;
     }
 
-    public void setEnvironment(Environment environment) {
-        this.environment = environment;
-    }
-
-    public EnvConfig() {
-        initialize();
-    }
-
-    public void initialize() {
-
+    public void logEnv() {
         String propFileName = PROP_FILE_NAME+".properties";
-
         try {
             InputStream in = EnvConfig.class.getClassLoader().getResourceAsStream(propFileName);
             if (in != null) {
@@ -68,20 +63,21 @@ public class EnvConfig {
             logger.debug(e1.getStackTrace().toString());
         }
         System.getProperties().stringPropertyNames().
-                forEach(key -> {if(properties.containsKey(key)) properties.setProperty(key, System.getProperty(key));});
+                forEach(key -> {if(properties.containsKey(key)) properties.setProperty(key, environment.getProperty(key));});
         System.getenv().keySet().
-                forEach(key -> {if(properties.containsKey(key)) properties.setProperty(key, System.getenv(key));});
+                forEach(key -> {if(properties.containsKey(key)) properties.setProperty(key, environment.getProperty(key));});
         String[] otherEnv = {"server.log.level", "server.log.path"};
         for (String key : otherEnv) {
             if (System.getenv(key) != null) {
                 properties.setProperty(key, System.getenv(key));
             }
         }
-        Map<String, String> envLog = new HashMap<>();
+        Map<String, String> envLog = new LinkedHashMap<>();
         SortedSet<String> sortedProps = new TreeSet<>();
         sortedProps.addAll(properties.stringPropertyNames());
         sortedProps.forEach(x -> envLog.put(x,properties.getProperty(x)));
-        logger.info("Environment & System Variables = {}",new Gson().toJson(envLog));
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        logger.info("Environment & System Variables = {}", gson.toJson(envLog));
     }
 
     public boolean useServiceRegistry() {

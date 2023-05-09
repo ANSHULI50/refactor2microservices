@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Created by anurag on 19/04/17.
  */
-@Table("OrderLine")
+@Table("orderline")
 public class DBOrderLine {
     @PrimaryKey
     private DBOrderKey orderKey;

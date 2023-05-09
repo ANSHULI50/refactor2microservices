@@ -18,9 +18,9 @@ package com.ntw.oms.admin.api;
 
 import com.ntw.common.config.AppConfig;
 import com.ntw.common.config.ServiceID;
+import com.ntw.common.util.StringUtil;
 import com.ntw.oms.admin.entity.OperationStatus;
 import com.ntw.oms.admin.entity.UserAuth;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Created by anurag on 27/06/19.
@@ -62,7 +62,7 @@ public class UserAuthApiClient extends ApiClient {
         UserAuth userAuth = new UserAuth();
         userAuth.setId(userId);
         userAuth.setPassword("password");
-        userAuth.setName(StringUtils.capitalize(userId));
+        userAuth.setName(StringUtil.capitalize(userId));
         userAuth.getRoles().add("Admin");
         userAuth.getRoles().add("User");
         userAuth.setEmailId("user."+userId+"@test.com");

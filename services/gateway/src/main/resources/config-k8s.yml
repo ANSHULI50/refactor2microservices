@@ -1,0 +1,28 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: admin-api
+          uri: http://admin-svc
+          predicates:
+            - Path=/admin/**
+        - id: auth-api
+          uri: http://auth-svc
+          predicates:
+            - Path=/auth/**
+        - id: product-api
+          uri: http://product-svc
+          predicates:
+            - Path=/products/**
+        - id: cart-api
+          uri: http://order-svc
+          predicates:
+            - Path=/carts/**
+        - id: order-api
+          uri: http://order-svc
+          predicates:
+            - Path=/orders/**
+        - id: inventory-api
+          uri: http://inventory-svc
+          predicates:
+            - Path=/inventory/**

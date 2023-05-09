@@ -27,7 +27,7 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 @PrimaryKeyClass
 public class DBAddressKey {
 
-    @PrimaryKeyColumn(name = "userProfileId", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
+    @PrimaryKeyColumn(name = "userprofileid", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     private String userProfileId;
     @PrimaryKeyColumn(name = "type", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.ASCENDING)
     private String type;

@@ -16,24 +16,22 @@
 
 package com.ntw.oms.order;
 
+import com.datastax.oss.driver.api.core.CqlSession;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.data.cassandra.config.CassandraClusterFactoryBean;
-import org.springframework.data.cassandra.config.CassandraCqlSessionFactoryBean;
-import org.springframework.data.cassandra.config.CassandraSessionFactoryBean;
-import org.springframework.data.cassandra.config.SchemaAction;
+import org.springframework.data.cassandra.config.CqlSessionFactoryBean;
 import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.data.cassandra.core.convert.CassandraConverter;
 import org.springframework.data.cassandra.core.convert.MappingCassandraConverter;
 import org.springframework.data.cassandra.core.cql.CqlTemplate;
-import org.springframework.data.cassandra.core.mapping.BasicCassandraMappingContext;
 import org.springframework.data.cassandra.core.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.core.mapping.SimpleUserTypeResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -55,65 +53,40 @@ public class CartDBConfiguration {
     }
 
     @Bean
+    @Primary
     @ConditionalOnProperty(name = "database.type", havingValue = "CQL")
-    public CassandraClusterFactoryBean cartDBCluster() {
-        CassandraClusterFactoryBean cluster = new CassandraClusterFactoryBean();
-        cluster.setContactPoints(environment.getProperty("database.cassandra.hosts"));
-        cluster.setPort(Integer.parseInt(environment.getProperty("database.cassandra.port")));
-        return cluster;
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "database.type", havingValue = "CQL")
-    public CassandraCqlSessionFactoryBean cartCqlSession() {
-        CassandraCqlSessionFactoryBean session = new CassandraCqlSessionFactoryBean();
-        session.setCluster(cartDBCluster().getObject());
+    public CqlSessionFactoryBean cartCqlSession() {
+        CqlSessionFactoryBean session = new CqlSessionFactoryBean();
+        session.setContactPoints(environment.getProperty("database.cassandra.hosts"));
         session.setKeyspaceName(getKeyspaceName());
+        session.setLocalDatacenter("datacenter1");
         return session;
     }
 
     @Bean
-    @Qualifier("cartCqlTemplate")
     @ConditionalOnProperty(name = "database.type", havingValue = "CQL")
-    public CqlTemplate cartCqlTemplate() throws Exception {
-        return new CqlTemplate(cartCqlSession().getObject());
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "database.type", havingValue = "CQL")
-    public CassandraMappingContext cartDBMappingContext() {
-        BasicCassandraMappingContext mappingContext =  new BasicCassandraMappingContext();
-        mappingContext.setUserTypeResolver(new SimpleUserTypeResolver(cartDBCluster().getObject(),
-                getKeyspaceName()));
-
+    public CassandraMappingContext cartMappingContext(CqlSession cqlSession) {
+        CassandraMappingContext mappingContext =  new CassandraMappingContext();
+        mappingContext.setUserTypeResolver(new SimpleUserTypeResolver(cqlSession));
         return mappingContext;
     }
 
     @Bean
     @ConditionalOnProperty(name = "database.type", havingValue = "CQL")
-    public CassandraConverter cartConverter() {
-        return new MappingCassandraConverter(cartDBMappingContext());
-    }
-
-    /*
-     * Factory bean that creates the com.datastax.driver.core.Session instance
-     */
-    @Bean
-    @ConditionalOnProperty(name = "database.type", havingValue = "CQL")
-    public CassandraSessionFactoryBean cartDBSession() throws Exception {
-        CassandraSessionFactoryBean session = new CassandraSessionFactoryBean();
-        session.setCluster(cartDBCluster().getObject());
-        session.setKeyspaceName(getKeyspaceName());
-        session.setConverter(cartConverter());
-        session.setSchemaAction(SchemaAction.NONE);
-        return session;
+    public CassandraConverter cartConverter(CassandraMappingContext mappingContext) {
+        return new MappingCassandraConverter(mappingContext);
     }
 
     @Bean
-    @Qualifier("cartCassandraOperations")
     @ConditionalOnProperty(name = "database.type", havingValue = "CQL")
-    public CassandraOperations cartCassandraTemplate() throws Exception {
-        return new CassandraTemplate(cartDBSession().getObject());
+    public CassandraOperations cartCassandraOperations(CqlSession cartCqlSession) throws Exception {
+        return new CassandraTemplate(cartCqlSession);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "database.type", havingValue = "CQL")
+    public CqlTemplate cartCqlTemplate(CqlSession cqlSession) throws Exception {
+        return new CqlTemplate(cqlSession);
     }
 
 

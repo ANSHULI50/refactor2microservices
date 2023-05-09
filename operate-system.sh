@@ -34,7 +34,7 @@ function do_start_infra {
     for container in "${infra_containers[@]}"
     do
 	do_start_one $container
-	sleep 5s
+	sleep 5
     done    
     echo "-- Done --"
 }
@@ -44,17 +44,17 @@ function do_start_app {
     for container in "${data_containers[@]}"
     do
 	do_start_one $container
-	sleep 5s
+	sleep 5
     done    
     for container in "${web_containers[@]}"
     do
 	do_start_one $container
-	sleep 5s
+	sleep 5
     done    
     for container in "${service_containers[@]}"
     do
 	do_start_one $container
-	sleep 30s
+	sleep 5
     done    
     echo "-- Done --"
 }
@@ -234,7 +234,7 @@ elif [ "$TARGET" == "stop" ]; then
 elif [ "$TARGET" == "status" ]; then
     get_status
 else
-    read -p "Do you wish to start all: " yn
+    read -p "Do you wish to start all [Y/n]: " yn
     case $yn in
         [Yy]* ) do_all; break;;
         [Nn]* ) exit;;

@@ -22,7 +22,7 @@ test -d $OMS_DEPLOY/services/image/war || mkdir -p $OMS_DEPLOY/services/image/wa
 
 echo Copy Eureka Server war file
 test -d $OMS_DEPLOY/eureka/image || mkdir -p $OMS_DEPLOY/eureka/image && \
-	cp $OMS_STAGING/registry/discovery.jar $OMS_DEPLOY/eureka/image
+	cp $OMS_STAGING/services/discovery.war $OMS_DEPLOY/eureka/image
 
 echo Copy Jmeter test files
 test -d $OMS_DEPLOY/jmeter/image/tests || mkdir -p $OMS_DEPLOY/jmeter/image/tests && \

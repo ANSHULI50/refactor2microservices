@@ -16,8 +16,6 @@
 
 package com.ntw.common.entity;
 
-import com.ntw.common.util.ToString;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;

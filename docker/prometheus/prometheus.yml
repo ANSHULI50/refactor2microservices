@@ -11,7 +11,7 @@ scrape_configs:
       - targets:
         - web:8000
   - job_name: 'services-metrics'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/actuator/metrics'
     scrape_interval: 5s
     eureka_sd_configs:
       - server: http://eureka:8761/eureka

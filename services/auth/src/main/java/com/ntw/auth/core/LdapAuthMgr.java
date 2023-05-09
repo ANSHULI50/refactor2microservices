@@ -17,7 +17,6 @@
 package com.ntw.auth.core;
 
 import com.ntw.common.entity.UserAuth;
-import com.ntw.common.util.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.AttributesMapper;
@@ -28,6 +27,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
@@ -104,7 +104,7 @@ public class LdapAuthMgr implements AuthMgr {
         if (roleIds == null || roleIds.isEmpty()) {
             throw new RuntimeException("No roles assigned to user "+userId);
         }
-        logger.debug("User role for user id "+userId+" are "+ ToString.toString(roleIds));
+        logger.debug("User role for user id "+userId+" are "+ Arrays.toString(roleIds.toArray()));
         return roleIds;
     }
 

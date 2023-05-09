@@ -1,0 +1,36 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: admin-api
+          uri: lb://AdminSvc
+          predicates:
+            - Path=/admin/**
+        - id: auth-api
+          uri: lb://AuthSvc
+          predicates:
+            - Path=/auth/**
+        - id: product-api
+          uri: lb://ProductSvc
+          predicates:
+            - Path=/products/**
+        - id: cart-api
+          uri: lb://OrderSvc
+          predicates:
+            - Path=/carts/**
+        - id: order-api
+          uri: lb://OrderSvc
+          predicates:
+            - Path=/orders/**
+        - id: inventory-api
+          uri: lb://InventorySvc
+          predicates:
+            - Path=/inventory/**
+
+eureka:
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    registry-fetch-interval-seconds: 2
+    serviceUrl:
+      defaultZone: http://discovery-svc:8761/eureka

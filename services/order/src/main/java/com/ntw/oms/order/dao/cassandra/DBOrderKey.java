@@ -26,11 +26,11 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
  */
 @PrimaryKeyClass
 public class DBOrderKey {
-    @PrimaryKeyColumn(name = "userId", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
+    @PrimaryKeyColumn(name = "userid", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     private String userId;
     @PrimaryKeyColumn(name = "id", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.ASCENDING)
     private String id;
-    @PrimaryKeyColumn(name = "orderLineId", ordinal = 2, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.ASCENDING)
+    @PrimaryKeyColumn(name = "orderlineid", ordinal = 2, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.ASCENDING)
     private int orderLineId;
 
     public String getUserId() {

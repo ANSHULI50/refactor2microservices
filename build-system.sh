@@ -164,7 +164,7 @@ function do_images {
 
     cd $OMS_ROOT/docker/jmeter
     docker-compose build
-    verify_success $? "docker jmater build"
+    verify_success $? "docker jmeter build"
 
     echo "-- Done --"
 }
@@ -180,7 +180,7 @@ elif [ "$TARGET" == "images" ]; then
 else
     read -p "Do you wish to do complete build (y/n): " yn
     case $yn in
-        [Yy]* ) do_clean; do_build; do_stage; do_images; break;;
+        [Yy]* ) do_clean; do_build; do_stage; do_images;;
         [Nn]* ) exit;;
         * ) do_clean; do_build; do_stage; do_images;;
     esac    

@@ -10,9 +10,10 @@ function wait_for_port {
 PWD=`pwd`
 
 function start_service {
+    echo "-- starting service $1 --"
     JAVA_DEBUG_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:$3"
-    echo java $JAVA_DEBUG_OPTIONS -Dserver.port=$2 -jar $1/target/$1.war &
-    java $JAVA_DEBUG_OPTIONS -Dserver.port=$2 -jar $1/target/$1.war &
+    echo java $JAVA_DEBUG_OPTIONS $SVC_ARGS -Dserver.port=$2 -jar $1/target/$1.war &
+    java $JAVA_DEBUG_OPTIONS $SVC_ARGS -Dserver.port=$2 -jar $1/target/$1.war &
     wait_for_port $2
 }
 
@@ -73,6 +74,8 @@ elif [ "$1" == "order" ]; then
     start_service order 8084 6004
 elif [ "$1" == "inventory" ]; then
     start_service inventory 8085 6005
+elif [ "$1" == "discovery" ]; then
+    start_service discovery 8761 6006
 else
     echo "Incorrect service name $1"
     echo "Use any one of the following as service name argument:"

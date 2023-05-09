@@ -16,99 +16,65 @@
 
 package com.ntw.oms.gateway.filter;
 
-import com.netflix.zuul.ZuulFilter;
-import com.netflix.zuul.context.RequestContext;
-import com.netflix.zuul.exception.ZuulException;
 import com.ntw.common.entity.UserAuth;
+import com.ntw.common.security.AppAuthentication;
 import com.ntw.common.security.JJwtUtility;
 import com.ntw.common.security.JwtUtility;
 import com.ntw.common.security.Secured;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_TYPE;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 
 /**
  * Created by anurag on 24/03/17.
  */
 
 @Secured
-public class AuthenticationFilter extends ZuulFilter {
+public class AuthenticationFilter {
 
     private static Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
 
-    public UserAuth getUserCred(String authHeader) {
-        if(authHeader==null || !authHeader.startsWith("Bearer")) {
-            logger.error("Authorization not provided; authHeader={}", authHeader);
-            return null;
-        }
+    @Bean("AuthenticationFilter")
+    @Order(1)
+    public GlobalFilter requestResponseFilter() {
+        return (exchange, chain) -> {
+            String path = exchange.getRequest().getURI().getPath();
+            if (path.startsWith("/auth/token") ||
+                    path.startsWith("/status") ||
+                    path.startsWith("/admin/status") ||
+                    path.startsWith("/actuator/prometheus") ||
+                    HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod())) {
+                return chain.filter(exchange);
+            }
+            ServerHttpResponse response = exchange.getResponse();
+            String authHeader = exchange.getRequest().getHeaders().toSingleValueMap().get("Authorization");
+            if (authHeader == null || authHeader.isEmpty() || !authHeader.startsWith("Bearer")) {
+                response.setRawStatusCode(HttpStatus.UNAUTHORIZED.value());
+                return response.setComplete();
+            }
+            String authToken = authHeader.substring("Bearer".length()).trim();
+            JwtUtility jwtUtility = new JJwtUtility();
+            UserAuth userAuth = jwtUtility.parseToken(authToken);
+            if (userAuth == null) {
+                logger.info("Unable to find user with auth header {}", authHeader);
+                return null;
+            }
+            if (userAuth == null) {
+                response.setRawStatusCode(HttpStatus.FORBIDDEN.value());
+                return response.setComplete();
+            }
+            // ToDo: appAuthentication object unused
+            AppAuthentication appAuthentication = new AppAuthentication(userAuth, true, authHeader);
+            appAuthentication.setAuthenticated(true);
 
-        String authToken = authHeader.substring("Bearer".length()).trim();
-
-        JwtUtility jwtUtility = new JJwtUtility();
-        UserAuth userAuth = jwtUtility.parseToken(authToken);
-
-        return userAuth;
+            return chain.filter(exchange);
+        };
     }
 
-    @Override
-    public String filterType() {
-        return PRE_TYPE;
-    }
-
-    @Override
-    public int filterOrder() {
-        return 2;
-    }
-
-    @Override
-    public boolean shouldFilter() {
-        RequestContext context = RequestContext.getCurrentContext();
-        HttpServletRequest request = context.getRequest();
-        if (request.getRequestURI().startsWith("/auth/token") ||
-                request.getRequestURI().startsWith("/status") ||
-                request.getRequestURI().startsWith("/admin/status") ||
-                request.getRequestURI().startsWith("/actuator/prometheus") ||
-                        HttpMethod.OPTIONS.matches(request.getMethod()) ) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public Object run() throws ZuulException {
-
-        RequestContext context = RequestContext.getCurrentContext();
-        HttpServletRequest request = context.getRequest();
-
-        String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null) {
-            logger.info("No Authorization header present in the request; requestContext={}", request.toString());
-            context.setResponseStatusCode(HttpServletResponse.SC_FORBIDDEN);
-            context.setResponseBody("No Authorization header present in the request");
-            context.setSendZuulResponse(false);
-            return null;
-        }
-
-        logger.debug("Auth header : "+authHeader);
-
-        UserAuth userAuth = getUserCred(authHeader);
-        if (userAuth == null) {
-            logger.info("Unable to authenticate user token");
-            context.setResponseStatusCode(HttpServletResponse.SC_FORBIDDEN);
-            context.setResponseBody("Unable to authenticate user token");
-            return null;
-        }
-
-        RequestContext.getCurrentContext().set("SecurityContext", userAuth);
-        logger.debug("User authenticated; context={}", userAuth);
-
-        return null;
-    }
 }
 

@@ -67,20 +67,20 @@ public class CassandraAuthMgr extends DBAuthMgr {
     @Override
     public UserAuth getUserAuth(String userId) {
         String cqlOne = "select * from UserAuth where id = '"+userId+"'";
-        CassandraUserAuth dbUserAuth;
+        UserAuth userAuth;
         try {
-            dbUserAuth = getCassandraOperations().selectOne(cqlOne, CassandraUserAuth.class);
+            userAuth = getCassandraOperations().selectOne(cqlOne, UserAuth.class);
         } catch (Exception e) {
             logger.error("Exception fetching user auth for id={}", userId);
             logger.error("Exception message: ", e);
             return null;
         }
-        if (dbUserAuth == null) {
+        if (userAuth == null) {
             logger.info("User auth with id {} not found", userId);
             return null;
         }
-        logger.info("Found user; context={}", dbUserAuth.toString());
-        return dbUserAuth.getUserAuth();
+        logger.info("Found user; context={}", userAuth);
+        return userAuth;
     }
 
     @Override
@@ -103,11 +103,10 @@ public class CassandraAuthMgr extends DBAuthMgr {
 
     @Override
     public UserAuth createUser(UserAuth userAuth, String hashedPassword) {
-        CassandraUserAuth dbUserAuth = new CassandraUserAuth(userAuth);
-        dbUserAuth.setPassword(hashedPassword);
-        CassandraUserAuth userAuthRet;
+        userAuth.setPassword(hashedPassword);
+        UserAuth userAuthRet;
         try {
-            userAuthRet = getCassandraOperations().insert(dbUserAuth);
+            userAuthRet = getCassandraOperations().insert(userAuth);
         } catch (Exception e) {
             logger.error("Exception creating user; context={}", userAuth);
             logger.error("Exception message: ", e);
@@ -115,7 +114,7 @@ public class CassandraAuthMgr extends DBAuthMgr {
         }
         if (userAuthRet != null && userAuthRet.getId().equals(userAuth.getId())) {
             logger.debug("Created user auth; context={}", userAuthRet);
-            return userAuthRet.getUserAuth();
+            return userAuthRet;
         }
         logger.error("Unable to new user; context={}", userAuth);
         return null;

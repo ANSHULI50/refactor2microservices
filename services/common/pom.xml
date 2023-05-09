@@ -11,11 +11,10 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <jdk.version>1.8</jdk.version>
+    <jdk.version>11</jdk.version>
     <servletapi.version>4.0.1</servletapi.version>
-    <spring.version>5.2.12.RELEASE</spring.version>
-    <slf4j.version>1.7.26</slf4j.version>
-    <log4j.version>2.12.0</log4j.version>
+    <spring.version>5.3.27</spring.version>
+    <spring.security.version>5.8.3</spring.security.version>
     <jjwt.version>0.10.5</jjwt.version>
     <jjwt.jackson.version>2.9.8</jjwt.jackson.version>
     <jaegar.version>3.3.1</jaegar.version>
@@ -27,7 +26,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.13.RELEASE</version>
+    <version>2.7.11</version>
   </parent>
 
   <dependencies>
@@ -42,7 +41,7 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-web</artifactId>
-      <version>5.1.5.RELEASE</version>
+      <version>${spring.security.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -79,45 +78,31 @@
     </dependency>
 
     <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.10.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-      <version>2.2.9.RELEASE</version>
+      <version>3.1.5</version>
       <exclusions>
         <exclusion>
-          <groupId>org.springframework.security</groupId>
-          <artifactId>spring-security-crypto</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.inject</groupId>
-          <artifactId>guice</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>xpp3</groupId>
-          <artifactId>xpp3_min</artifactId>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
 
     <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
-      <version>${jaegar.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-      <version>${spring.boot.actuator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-prometheus</artifactId>
-      <scope>runtime</scope>
-      <version>${micrometer.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-log4j2</artifactId>
+      <artifactId>spring-boot-starter-logging</artifactId>
     </dependency>
 
     <dependency>

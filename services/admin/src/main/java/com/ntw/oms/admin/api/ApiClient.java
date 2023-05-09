@@ -20,12 +20,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.ntw.common.config.AppConfig;
+import com.ntw.common.config.EnvConfig;
 import com.ntw.common.config.ServiceID;
 import com.ntw.common.status.ServiceStatus;
+import com.ntw.common.util.StringUtil;
 import com.ntw.oms.admin.entity.OperationStatus;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.MediaType;
@@ -40,6 +42,7 @@ public abstract class ApiClient {
     protected LoadBalancerClient loadBalancer;
     protected ObjectMapper mapper;
     protected HttpClient client;
+    protected EnvConfig envConfig;
 
     private static final Logger logger = LoggerFactory.getLogger(ApiClient.class);
 
@@ -57,6 +60,10 @@ public abstract class ApiClient {
 
     public void setClient(HttpClient client) {
         this.client = client;
+    }
+
+    public void setEnvConfig(EnvConfig envConfig) {
+        this.envConfig = envConfig;
     }
 
     protected abstract ServiceID getServiceID();
@@ -102,10 +109,22 @@ public abstract class ApiClient {
         return operationStatus;
     }
 
+    private ServiceInstance getServiceInstance(String serviceId) {
+        Boolean useLoadBalancer = Boolean.parseBoolean(envConfig.getProperty("eureka.client.fetchRegistry"));
+        if (useLoadBalancer) {
+            return loadBalancer.choose(serviceId);
+        } else {
+            DefaultServiceInstance instance = new DefaultServiceInstance();
+            instance.setHost(envConfig.getProperty(new StringBuilder("service.").append(serviceId).append(".host").toString()));
+            instance.setPort(Integer.parseInt(envConfig.getProperty(new StringBuilder("service.").append(serviceId).append(".port").toString())));
+            return instance;
+        }
+    }
+
     protected OperationStatus insertData(String uri, String data) {
         OperationStatus operationStatus = new OperationStatus();
         operationStatus.setSuccess(false);
-        ServiceInstance instance = loadBalancer.choose(getEndpointServiceID().toString());
+        ServiceInstance instance = getServiceInstance(getEndpointServiceID().toString());
         if (instance == null) {
             operationStatus.setMessage("Unknown host for: "+getEndpointServiceID().toString());
             logger.error("Service not available: "+getEndpointServiceID().toString());
@@ -131,7 +150,7 @@ public abstract class ApiClient {
     public OperationStatus deleteData() {
         OperationStatus operationStatus = new OperationStatus();
         operationStatus.setSuccess(false);
-        ServiceInstance instance = loadBalancer.choose(getEndpointServiceID().toString());
+        ServiceInstance instance = getServiceInstance(getEndpointServiceID().toString());
         if (instance == null) {
             operationStatus.setMessage("Unknown host for: "+getEndpointServiceID().toString());
             logger.error("Service not available: "+getEndpointServiceID().toString());
@@ -156,7 +175,7 @@ public abstract class ApiClient {
     }
 
     public ServiceStatus getStatus() {
-        ServiceInstance instance = loadBalancer.choose(getEndpointServiceID().toString());
+        ServiceInstance instance = getServiceInstance(getEndpointServiceID().toString());
         ServiceStatus serviceStatus = new ServiceStatus(getEndpointServiceID().toString());
         if (instance == null) {
             serviceStatus.setServiceHost("Unknown");
@@ -201,7 +220,7 @@ public abstract class ApiClient {
                 buffer.setCharAt(i,' ');
             }
         }
-        return StringUtils.capitalize(buffer.toString());
+        return StringUtil.capitalize(buffer.toString());
     }
 
 }

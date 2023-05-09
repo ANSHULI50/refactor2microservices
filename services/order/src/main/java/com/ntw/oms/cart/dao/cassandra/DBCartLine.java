@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Created by anurag on 19/04/17.
  */
-@Table("CartLine")
+@Table("cartline")
 public class DBCartLine {
     @PrimaryKey
     private DBCartKey cartKey;

@@ -5,4 +5,4 @@ if [ -z "${JAVA_OPTIONS}" ]; then
 fi
 
 echo "Executing Spring Boot"
-java $JAVA_OPTIONS -jar /usr/war/discovery.jar
+java $JAVA_OPTIONS -jar /usr/war/discovery.war

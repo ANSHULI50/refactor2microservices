@@ -54,7 +54,7 @@
 		    <copy file="product/target/product.war" todir="target/"/>
 		    <copy file="order/target/order.war" todir="target/"/>
             <copy file="inventory/target/inventory.war" todir="target/"/>
-			<copy file="discovery/target/discovery.jar" todir="target/"/>
+			<copy file="discovery/target/discovery.war" todir="target/"/>
 		  </tasks>
 		</configuration>
 	      </execution>

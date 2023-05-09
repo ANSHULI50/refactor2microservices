@@ -14,7 +14,6 @@ function verify_success {
 
 echo Create directories
 test -d $OMS_STAGING/services || mkdir -p $OMS_STAGING/services && \
-test -d $OMS_STAGING/registry || mkdir -p $OMS_STAGING/registry && \
 test -d $OMS_STAGING/web || mkdir -p $OMS_STAGING/web && \
 test -d $OMS_STAGING/spa || mkdir -p $OMS_STAGING/spa && \
 test -d $OMS_STAGING/tests || mkdir -p $OMS_STAGING/tests && \
@@ -31,10 +30,6 @@ verify_success $? "spa build"
 echo Copy Services war files
 cp $OMS_ROOT/services/target/*.war $OMS_STAGING/services
 verify_success $? "services build"
-
-echo Copy eureka.jar file
-cp -r $OMS_ROOT/services/target/discovery.jar $OMS_STAGING/registry
-verify_success $? "discovery service build"
 
 echo Copy Jmeter tests files
 cp -r $OMS_ROOT/tests/jmeter/* $OMS_STAGING/tests

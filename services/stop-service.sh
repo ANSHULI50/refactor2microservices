@@ -28,6 +28,8 @@ elif [ "$1" == "inventory" ]; then
     stop_service inventory
 elif [ "$1" == "gateway" ]; then
     stop_service gateway
+elif [ "$1" == "discovery" ]; then
+    stop_service discovery
 else
     echo "Incorrect service name $1"
     echo "Use any one of the following as service name argument:"

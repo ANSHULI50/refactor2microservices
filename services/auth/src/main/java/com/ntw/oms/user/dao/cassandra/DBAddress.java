@@ -24,7 +24,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
 /**
  * Created by anurag on 30/05/17.
  */
-@Table("UserAddress")
+@Table("useraddress")
 public class DBAddress {
 
     @PrimaryKey

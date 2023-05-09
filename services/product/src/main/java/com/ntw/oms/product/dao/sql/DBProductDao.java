@@ -73,6 +73,9 @@ public class DBProductDao implements ProductDao {
 
     @Override
     public List<Product> getProducts(List<String> ids) {
+        if (ids.isEmpty()) {
+            return new LinkedList<>();
+        }
         StringBuilder productSql = new StringBuilder("select * from product where id IN ");
         productSql.append("(");
         int i=0;

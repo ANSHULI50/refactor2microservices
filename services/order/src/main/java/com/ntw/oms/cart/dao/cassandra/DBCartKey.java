@@ -26,9 +26,9 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
  */
 @PrimaryKeyClass
 public class DBCartKey {
-    @PrimaryKeyColumn(name = "cartId", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
+    @PrimaryKeyColumn(name = "cartid", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     private String cartId;
-    @PrimaryKeyColumn(name = "cartLineId", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.ASCENDING)
+    @PrimaryKeyColumn(name = "cartlineid", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.ASCENDING)
     private int cartLineId;
 
     public int getCartLineId() {

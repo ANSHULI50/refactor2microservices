@@ -26,11 +26,3 @@ spring:
           uri: lb://InventorySvc
           predicates:
             - Path=/inventory/**
-
-eureka:
-  client:
-    registerWithEureka: true
-    fetchRegistry: true
-    registry-fetch-interval-seconds: 2
-    serviceUrl:
-      defaultZone: http://discovery-svc:8761/eureka

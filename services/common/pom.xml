@@ -17,9 +17,9 @@
     <spring.security.version>5.8.3</spring.security.version>
     <jjwt.version>0.10.5</jjwt.version>
     <jjwt.jackson.version>2.9.8</jjwt.jackson.version>
-    <jaegar.version>3.3.1</jaegar.version>
+    <jaeger.version>3.3.1</jaeger.version>
     <spring.boot.actuator.version>2.5.2</spring.boot.actuator.version>
-    <micrometer.version>1.7.1</micrometer.version>
+    <micrometer.version>1.11.0</micrometer.version>
     <junit.version>3.8.1</junit.version>
   </properties>
 
@@ -103,6 +103,19 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-logging</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.opentracing.contrib</groupId>
+      <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
+      <version>${jaeger.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+      <scope>runtime</scope>
+      <version>${micrometer.version}</version>
     </dependency>
 
     <dependency>

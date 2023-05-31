@@ -37,3 +37,37 @@ spring:
             allowedOrigins: "*"
             allowedMethods: "*"
             allowedHeaders: "*"
+      default-filters:
+        - name: CircuitBreaker
+          args:
+            name: myCircuitBreaker
+            fallbackUri: forward:/error/cb
+        - name: Retry
+          args:
+            retries: 3
+            statuses:
+              - REQUEST_TIMEOUT
+              - BAD_GATEWAY
+              - SERVICE_UNAVAILABLE
+              - GATEWAY_TIMEOUT
+            methods: GET,PUT,DELETE
+            backoff:
+              firstBackoff: 500ms
+              maxBackoff: 10000ms
+              factor: 2
+              basedOnPreviousValue: false
+
+resilience4j.circuitbreaker:
+  instances:
+    myCircuitBreaker:
+      slidingWindowSize: 60
+      slidingWindowType: TIME_BASED
+      failureRateThreshold: 50
+      minimumNumberOfCalls: 4
+      waitDurationInOpenState: 10s
+      permittedNumberOfCallsInHalfOpenState: 2
+
+resilience4j.timelimiter:
+  instances:
+    myCircuitBreaker:
+      timeoutDuration: 4s

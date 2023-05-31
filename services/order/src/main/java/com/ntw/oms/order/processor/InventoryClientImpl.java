@@ -22,9 +22,11 @@ import com.ntw.common.config.EnvConfig;
 import com.ntw.common.config.ServiceID;
 import com.ntw.oms.order.entity.InventoryReservation;
 import com.ntw.oms.order.service.OrderServiceImpl;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
+import io.opentracing.util.GlobalTracer;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -54,9 +59,11 @@ public class InventoryClientImpl implements InventoryClient {
     @Autowired
     private LoadBalancerClient loadBalancer;
 
-    // tracer bean is created by the spring jaeger cloud library itself
     @Autowired
-    private Tracer tracer;
+    private CircuitBreakerFactory circuitBreakerFactory;
+
+    @Autowired
+    private RetryTemplate retryTemplate;
 
     @Autowired
     private EnvConfig envConfig;
@@ -93,7 +100,41 @@ public class InventoryClientImpl implements InventoryClient {
     }
 
     @Override
-    public boolean reserveInventory(InventoryReservation inventoryReservation) throws IOException {
+    public boolean reserveInventory(InventoryReservation inventoryReservation) {
+        String authHeader = OrderServiceImpl.getThreadLocal().get();
+        try {
+            return retryTemplate.execute(context -> {
+                if (context.getRetryCount() > 0)
+                    logger.warn("Retrying reserve inventory request with retry count {}", context.getRetryCount());
+                if (!reserveInventoryCircuitBreaker(inventoryReservation, authHeader))
+                    throw new IOException(new StringBuilder("Failed to execute reserve inventory for ")
+                            .append(inventoryReservation).toString()); // IOException is the signal to retry
+                return true;
+            }, ioException -> {
+                logger.warn("All retry requests for reserve inventory failed");
+                return false;
+            });
+        } catch(Exception e) {
+            return false;
+        }
+    }
+
+    private boolean reserveInventoryCircuitBreaker(InventoryReservation inventoryReservation, String authHeader) {
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("inventory-svc-cb");
+        return circuitBreaker.run(() -> {
+                    if (!reserveInventoryImpl(inventoryReservation, authHeader))
+                        throw new RuntimeException(); // Runtime exception is the signal for service unavailable
+                    return true;
+                },
+                throwable -> {
+                    if (throwable instanceof CallNotPermittedException)
+                        logger.warn("CIRCUIT BREAKER OPEN: Not calling reserve inventory");
+                    return false;
+                }
+        );
+    }
+
+    public boolean reserveInventoryImpl(InventoryReservation inventoryReservation, String authHeader) {
         ServiceInstance instance = getServiceInstance(ServiceID.InventorySvc.toString());
         if (instance == null) {
             logger.error("Inventory service configuration not available. Unable to reserve inventory: {}", inventoryReservation);
@@ -108,8 +149,8 @@ public class InventoryClientImpl implements InventoryClient {
         Request.Builder requestBuilder = new Request.Builder()
                 .url(url.toString())
                 .post(body);
-        String authHeader = OrderServiceImpl.getThreadLocal().get();
         requestBuilder.addHeader("Authorization", authHeader);
+        Tracer tracer = GlobalTracer.get();
         Span invRemoteCallSpan = tracer.buildSpan("reserveInventoryRemote").asChildOf(tracer.activeSpan()).start();
         tracer.inject(invRemoteCallSpan.context(),
                     Format.Builtin.HTTP_HEADERS,
@@ -122,15 +163,14 @@ public class InventoryClientImpl implements InventoryClient {
             }
             logger.debug("Unable to reserve inventory, got error; errorCode={}, message={} context={}",
                         response.code(), response.message(), inventoryReservation);
-            return false;
         } catch (IOException e) {
             logger.error("Error calling InventorySvc while reserving inventory; context={}", inventoryReservation);
             logger.error(e.getMessage(), e);
-            throw e;
         }
         finally {
             invRemoteCallSpan.finish();
         }
+        return false;
     }
 }
 
@@ -151,4 +191,5 @@ class RequestBuilderCarrier implements io.opentracing.propagation.TextMap {
         builder.addHeader(key, value);
     }
 }
+
 

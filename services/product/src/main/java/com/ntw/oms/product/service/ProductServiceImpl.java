@@ -124,7 +124,9 @@ public class ProductServiceImpl {
         Product product = getProductFromCache(id);
         if (product == null) {
             product = getProductDaoBean().getProduct(id);
-            addProductToCache(product);
+            if (product != null) {
+                addProductToCache(product);
+            }
         }
         return product;
     }

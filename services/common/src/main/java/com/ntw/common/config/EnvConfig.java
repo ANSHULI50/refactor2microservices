@@ -51,8 +51,7 @@ public class EnvConfig {
 
     public void logEnv() {
         String propFileName = PROP_FILE_NAME+".properties";
-        try {
-            InputStream in = EnvConfig.class.getClassLoader().getResourceAsStream(propFileName);
+        try (InputStream in = EnvConfig.class.getClassLoader().getResourceAsStream(propFileName)) {
             if (in != null) {
                 properties.load(in);
             } else {
@@ -62,29 +61,22 @@ public class EnvConfig {
             logger.error("Unable to read "+propFileName+" file");
             logger.debug(e1.getStackTrace().toString());
         }
-        System.getProperties().stringPropertyNames().
-                forEach(key -> {if(properties.containsKey(key)) properties.setProperty(key, environment.getProperty(key));});
-        System.getenv().keySet().
-                forEach(key -> {if(properties.containsKey(key)) properties.setProperty(key, environment.getProperty(key));});
-        String[] otherEnv = {"server.log.level", "server.log.path"};
-        for (String key : otherEnv) {
-            if (System.getenv(key) != null) {
-                properties.setProperty(key, System.getenv(key));
-            }
-        }
-        Map<String, String> envLog = new LinkedHashMap<>();
-        SortedSet<String> sortedProps = new TreeSet<>();
-        sortedProps.addAll(properties.stringPropertyNames());
-        sortedProps.forEach(x -> envLog.put(x,properties.getProperty(x)));
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        logger.info("Environment & System Variables = {}", gson.toJson(envLog));
-    }
 
-    public boolean useServiceRegistry() {
-        return Boolean.parseBoolean(properties.getProperty(USE_SERVICE_REGISTRY));
+        SortedSet<String> envKeys = new TreeSet<>();
+        properties.stringPropertyNames().forEach(key -> envKeys.add(key));
+        String[] otherEnv = {"server.log.level", "server.log.path",
+                "eureka.client.fetchRegistry", "eureka.client.registerWithEureka",
+                "spring.config.name", "spring.profiles.active"};
+        envKeys.addAll(Arrays.asList(otherEnv));
+
+        Map<String, String> envMap = new LinkedHashMap<>();
+        envKeys.forEach(key -> envMap.put(key, environment.getProperty(key)));
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        logger.info("Environment & System Variables = {}", gson.toJson(envMap));
     }
 
     public String getProperty(String key) {
-        return properties.getProperty(key);
+        return environment.getProperty(key);
     }
 }

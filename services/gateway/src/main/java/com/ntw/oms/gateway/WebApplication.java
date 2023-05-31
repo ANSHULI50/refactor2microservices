@@ -23,12 +23,15 @@ import com.ntw.common.config.EnvConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 @SpringBootApplication
 @EnableDiscoveryClient
+@PropertySource(value = { "classpath:config.properties" })
 public class WebApplication {
 
     @Autowired
@@ -42,6 +45,13 @@ public class WebApplication {
     public EnvConfig envConfig() {
         // Added this bean to view env vars on console/log
         return new EnvConfig(environment);
+    }
+
+    @Bean
+    @ConditionalOnProperty(value="opentracing.jaeger.enabled", havingValue="false", matchIfMissing=false)
+    public io.opentracing.Tracer jaegerTracer() {
+        // This bean is a workaround to avoid service name exception when jaeger tracing is disabled
+        return io.opentracing.noop.NoopTracerFactory.create();
     }
 
 }

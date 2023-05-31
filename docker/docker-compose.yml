@@ -370,9 +370,9 @@ services:
     env_file: .env
     environment:
       - eureka.instance.hostname=gateway-svc
-      - spring.config.name=config
+      - eureka.client.fetchRegistry=true
       - spring.profiles.active=discovery
-      - management.endpoints.web.exposure.include=health,info,metrics,gateway
+      - management.endpoints.web.exposure.include=health,info,metrics,prometheus,gateway
     volumes:
       - app-logs:/var/log/oms
     entrypoint: /usr/bin/docker-entrypoint.sh gateway
@@ -396,6 +396,7 @@ services:
     env_file: .env 
     environment:
       - eureka.instance.hostname=admin-svc
+      - eureka.client.fetchRegistry=true
     volumes:
       - app-logs:/var/log/oms
     entrypoint: /usr/bin/docker-entrypoint.sh admin
@@ -465,6 +466,7 @@ services:
     env_file: .env 
     environment:
       - eureka.instance.hostname=order-svc
+      - eureka.client.fetchRegistry=true
     volumes:
       - app-logs:/var/log/oms
     entrypoint: /usr/bin/docker-entrypoint.sh order

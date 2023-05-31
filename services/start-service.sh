@@ -8,6 +8,7 @@ function wait_for_port {
 }
 
 PWD=`pwd`
+SVC_ARGS="-Dspring.config.name=config"
 
 function start_service {
     echo "-- starting service $1 --"

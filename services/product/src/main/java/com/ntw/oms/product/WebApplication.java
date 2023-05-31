@@ -25,6 +25,8 @@ import org.springframework.beans.factory.config.ServiceLocatorFactoryBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveDataAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -45,7 +47,7 @@ import javax.servlet.ServletContextListener;
 @SpringBootApplication
 @PropertySource(value = { "classpath:config.properties" })
 @EnableAutoConfiguration(exclude={CassandraDataAutoConfiguration.class,
-        CassandraReactiveDataAutoConfiguration.class})
+        CassandraAutoConfiguration.class, CassandraReactiveDataAutoConfiguration.class})
 public class WebApplication extends SpringBootServletInitializer {
 
     @Autowired
@@ -99,4 +101,10 @@ public class WebApplication extends SpringBootServletInitializer {
         return factoryBean;
     }
 
+    @Bean
+    @ConditionalOnProperty(value="opentracing.jaeger.enabled", havingValue="false", matchIfMissing=false)
+    public io.opentracing.Tracer jaegerTracer() {
+        // This bean is a workaround to avoid service name exception when jaeger tracing is disabled
+        return io.opentracing.noop.NoopTracerFactory.create();
+    }
 }

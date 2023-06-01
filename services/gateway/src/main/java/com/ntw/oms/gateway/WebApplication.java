@@ -42,9 +42,15 @@ public class WebApplication {
     }
 
     @Bean
-    public EnvConfig envConfig() {
+    public EnvConfig envConfig() throws Exception {
         // Added this bean to view env vars on console/log
-        return new EnvConfig(environment);
+        EnvConfig envConfig = new EnvConfig(environment);
+        String configName = envConfig.getProperty("spring.config.name");
+        if ( configName == null || !configName.equals("config")) {
+            throw new Exception("ERROR: To read routes specify java property -Dspring.config.name=config " +
+                    "or set it as an environment variable. Aborting!!!");
+        }
+        return envConfig;
     }
 
     @Bean

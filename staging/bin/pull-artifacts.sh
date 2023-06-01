@@ -20,23 +20,23 @@ test -d $OMS_STAGING/tests || mkdir -p $OMS_STAGING/tests && \
 test -d $OMS_STAGING/schema || mkdir -p $OMS_STAGING/schema
 
 echo Copy PyUI .tar.gz file
-cp -r $OMS_ROOT/web/PyUI.tar.gz $OMS_STAGING/web
+cp -u -r $OMS_ROOT/web/PyUI.tar.gz $OMS_STAGING/web
 verify_success $? "web build"
 
 echo Copy reactapp.tar.gz file
-cp -r $OMS_ROOT/spa/reactapp.tar.gz $OMS_STAGING/spa
+cp -u -r $OMS_ROOT/spa/reactapp.tar.gz $OMS_STAGING/spa
 verify_success $? "spa build"
 
 echo Copy Services war files
-cp $OMS_ROOT/services/target/*.war $OMS_STAGING/services
+cp -u $OMS_ROOT/services/target/*.war $OMS_STAGING/services
 verify_success $? "services build"
 
 echo Copy Jmeter tests files
-cp -r $OMS_ROOT/tests/jmeter/* $OMS_STAGING/tests
+cp -u -r $OMS_ROOT/tests/jmeter/* $OMS_STAGING/tests
 verify_success $? "jmeter files"
 
 echo Copy create schema script
-cp -r $OMS_ROOT/bin/*.sql $OMS_STAGING/schema
+cp -u -r $OMS_ROOT/bin/*.sql $OMS_STAGING/schema
 verify_success $? "create schema files"
 
 echo Done!!

@@ -2,25 +2,27 @@
 
 export OMS_ROOT=`pwd`
 
-#cd $OMS_ROOT
-
 TARGET=$1
+SUBTARGET=$2
 
 echo "-- Start --"
 
 function verify_success {
     if [ $1 == 0 ]; then
-	echo "-- Build succeeded for $2 --"
+	if [ -n "$2" ]; then
+	    echo "-- Build succeeded for $2 --"
+	fi
     else
-	echo "-- Build failed for $2. Exiting! --"
-	exit -1;
+	if [ -n "$2" ]; then
+	    echo "-- Build failed for $2. Exiting! --"
+	fi
+	exit 1;
     fi
 }
 
 echo "--- Verify system and tools ---"
-
 ./bin/verify-system.sh
-verify_success $? "operating system verification"
+verify_success $?
 
 ./bin/verify-build-tools.sh
 verify_success $? "build tools installation verification"
@@ -42,7 +44,7 @@ function do_clean {
 
     if [ "$1" == "all" ]; then
 	cd $OMS_ROOT/staging
-	rm -rf services web registry tests
+	rm -rf services web spa schema tests
 	verify_success $? "staging clean"
 	
 	cd $OMS_ROOT/docker/bin
@@ -85,6 +87,8 @@ function do_build {
 	fi
 
     fi
+
+    do_stage
 	
     echo "-- Done --"
 }
@@ -109,19 +113,16 @@ function do_build_spa {
 
 function do_build_services {
     cd $OMS_ROOT/services
-    mvn package
+    mvn clean package
     verify_success $? "services"
 }
 
 function do_build_service {
     cd $OMS_ROOT/services/$1
-    mvn package
+    mvn clean package
     verify_success $? "service $1"
     cp ./target/*.war ../target
 }
-
-
-############################## Staging ####################################
 
 function do_stage {
     echo "-- Pull artifacts to Staging --"
@@ -173,17 +174,14 @@ if [ "$TARGET" == "clean" ]; then
     do_clean $2
 elif [ "$TARGET" == "build" ]; then
     do_build $1 $2 $3
-elif [ "$TARGET" == "stage" ]; then
-    do_stage
 elif [ "$TARGET" == "images" ]; then
     do_images $2
 else
-    read -p "Do you wish to do complete build (y/n): " yn
+    read -p "Do you wish to do complete build [Y/n]: " yn
     case $yn in
-        [Yy]* ) do_clean; do_build; do_stage; do_images;;
         [Nn]* ) exit;;
-        * ) do_clean; do_build; do_stage; do_images;;
-    esac    
+    esac
+    do_clean; do_build; do_images;
 fi
     
 echo "-- Done --"

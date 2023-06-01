@@ -1,5 +1,6 @@
 #!/bin/bash
 function stop_service {
+    echo "-- Stopping service $1 --"
     SERVICE=$1
     PID=$(ps -eaf | grep -e ${SERVICE}.war | grep -v grep | awk '{print $2}')
     if [ -n "$PID" ]; then
@@ -9,29 +10,30 @@ function stop_service {
         echo "$SERVICE service not running"
     fi
 }
-if [ "$1" == "all" ]; then
-    stop_service auth
-    stop_service product
-    stop_service order
-    stop_service inventory
-    stop_service gateway
-    stop_service admin
-elif [ "$1" == "admin" ]; then
-    stop_service admin
-elif [ "$1" == "auth" ]; then
-    stop_service auth
-elif [ "$1" == "product" ]; then
-    stop_service product
-elif [ "$1" == "order" ]; then
-    stop_service order
-elif [ "$1" == "inventory" ]; then
-    stop_service inventory
-elif [ "$1" == "gateway" ]; then
-    stop_service gateway
-elif [ "$1" == "discovery" ]; then
-    stop_service discovery
+
+SERVICES="gateway admin auth product order inventory discovery"
+if [ -z "$1" ] || [ "$1" == "all" ]; then
+    read -p "Do you wish to stop all services [Y/n]: " yn
+    case $yn in
+        [Nn]* ) exit;;
+    esac    
+    for service in $SERVICES
+    do
+	stop_service $service
+    done
 else
-    echo "Incorrect service name $1"
-    echo "Use any one of the following as service name argument:"
-    echo "all, admin, auth, product, gateway, order, inventory" 
+    service_match=0
+    for service in $SERVICES
+    do
+	if [ "$1" == "$service" ]; then
+	    stop_service $service
+	    service_match=1
+	    break
+	fi
+    done
+    if [ $service_match == 0 ]; then
+	echo "Incorrect service name $1"
+	echo "Use any one of the following as service name argument:"
+	echo "all, gateway, admin, auth, product, order, inventory, discovery" 
+    fi
 fi

@@ -47,40 +47,54 @@ function verify_postgres_db {
 	   [ "$IS_POSTGRES_INSTALLED" == "false" ]; then
 	read -p "Start services anyway (y/n): " yn
 	case $yn in
-	    [Yy]* ) echo "";;
 	    [Nn]* ) exit -1;;
-	    * ) echo "";;
-    esac
+	esac
     fi
 }
 
 verify_postgres_db
 
-if [ "$1" == "all" ]; then
-    start_service gateway 8080 6000
-    start_service admin 8081 6001
-    start_service auth 8082 6002
-    start_service product 8083 6003
-    start_service order 8084 6004
-    start_service inventory 8085 6005
-elif [ "$1" == "gateway" ]; then
-    start_service gateway 8080 6000
-elif [ "$1" == "admin" ]; then
-    start_service admin 8081 6001
-elif [ "$1" == "auth" ]; then
-    start_service auth 8082 6002
-elif [ "$1" == "product" ]; then
-    start_service product 8083 6003
-elif [ "$1" == "order" ]; then
-    start_service order 8084 6004
-elif [ "$1" == "inventory" ]; then
-    start_service inventory 8085 6005
-elif [ "$1" == "discovery" ]; then
-    start_service discovery 8761 6006
+SERVICES="gateway admin auth product order inventory"
+SVC_PORT=8080
+DEBUG_PORT=6000
+if [ -z "$1" ] || [ "$1" == "all" ]; then
+    if [ -z "$1" ]; then
+	read -p "Do you wish to start all services [Y/n]? " yn
+	case $yn in
+	    [Nn]* ) exit;;
+	esac
+    fi
+    for service in $SERVICES
+    do
+	start_service $service $SVC_PORT $DEBUG_PORT
+	SVC_PORT=$((SVC_PORT+1))
+	DEBUG_PORT=$((DEBUG_PORT+1))
+    done
 else
-    echo "Incorrect service name $1"
-    echo "Use any one of the following as service name argument:"
-    echo "all, admin, auth, product, gateway, order, inventory" 
+    service_match=0
+    for service in $SERVICES
+    do
+	if [ "$1" == "discovery" ]; then
+	    start_service discovery 8761 8762
+	    break
+	elif [ "$1" == "$service" ]; then
+	    start_service $service $SVC_PORT $DEBUG_PORT
+	    service_match=1
+	    break
+	else
+	    SVC_PORT=$((SVC_PORT+1))
+	    DEBUG_PORT=$((DEBUG_PORT+1))
+	fi
+    done
+    if [ "$1" == "discovery" ]; then
+	start_service discovery 8761 6006
+	service_match=1
+    fi
+    if [ $service_match == 0 ]; then
+	echo "Incorrect service name $1"
+	echo "Use any one of the following as service name argument:"
+	echo "all, gateway admin, auth, product, order, inventory, discovery" 
+    fi
 fi
 
 echo "Following java server processes are running"

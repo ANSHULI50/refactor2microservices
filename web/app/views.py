@@ -44,6 +44,7 @@ session.mount('http://', adapter)
 tracer = settings.TRACER
 Format = opentracing.Format
 
+
 def get_access_token(request):
     if AUTH_TOKEN_COOKIE in request.COOKIES:
         auth_token = request.COOKIES[AUTH_TOKEN_COOKIE]
@@ -538,9 +539,38 @@ def get_registry(request):
         my_res = ''
         for application in applications:
             my_res += '\n'+json.dumps(application, indent=4)+'\n'
-        return render(request, 'app/monitor.html',{'message': '<pre>'+my_res+'</pre>'})
+        return render(request, 'app/monitor.html', {'message': '<pre>'+my_res+'</pre>'})
     logger.error('Unable to get registry status')
     return render(request, 'app/monitor.html', {'message': 'Registry not configured or not reachable'})
+
+
+def get_gateway_routes(request):
+    logger.debug('Get Gateway Routes')
+    if os.environ.get('SERVICES_HOST') is None:
+        gateway_url = 'http://localhost:8080/actuator/gateway/routes'
+    else:
+        gateway_url = os.environ.get('SERVICES_HOST') + '/actuator/gateway/routes'
+
+    try:
+        req = session.get(gateway_url, headers={'Accept': 'application/json'},
+                           timeout=settings.HTTP_TIMEOUT)
+        req.raise_for_status()
+    except HTTPError as http_error:
+        print("Http Error:", http_error)
+        logger.error("HTTPError communicating with the backend server")
+        return render(request, 'app/error.html',
+                      {'message': 'HTTP Error '+str(req.status_code)+' communicating with the backend server.'})
+    except Exception as exception:
+        print("Error Connecting:", exception)
+        logger.error("Error communicating with a backend server")
+        return render(request, 'app/monitor.html', {'message': 'Gateway service is not up'})
+
+    if req.status_code == 200:
+        res = json.loads(req.content)
+        my_res = '\n'+json.dumps(res, indent=4)+'\n'
+        return render(request, 'app/monitor.html', {'message': '<pre>'+my_res+'</pre>'})
+    logger.error('Unable to get gateway routes')
+    return render(request, 'app/monitor.html', {'message': 'Gateway service not up'})
 
 
 def get_table_data(request):

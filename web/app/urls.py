@@ -22,5 +22,6 @@ urlpatterns = [
   url(r'^status$', views.get_status),
   url(r'^systemStatus$', views.get_system_status),
   url(r'^registry$', views.get_registry),
+  url(r'^routes$', views.get_gateway_routes),
   url(r'^tableData$', views.get_table_data),
 ]

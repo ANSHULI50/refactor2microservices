@@ -35,20 +35,15 @@ RUN apt-get install -y software-properties-common \
 
 RUN apt-get clean
 
-COPY ./image/war/auth.war \
-     ./image/war/admin.war \
-     ./image/war/inventory.war \
-     ./image/war/product.war \
-     ./image/war/order.war \
-     ./image/war/gateway.war \
-     /usr/war/
+COPY ./image/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
+COPY ./image/jstatd.policy /usr/jstatd.policy
+
+ARG SERVICE
+COPY ./image/war/$SERVICE.war /usr/war/
 
 # Create mount point for log files
 VOLUME ["/var/log/oms"]
 
-COPY ./image/jstatd.policy /usr/jstatd.policy
-COPY ./image/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
-
-EXPOSE 5551 1099 6005
+EXPOSE 8080 5551 1099 6005
 
 ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]

@@ -549,7 +549,8 @@ def get_gateway_routes(request):
     if os.environ.get('SERVICES_HOST') is None:
         gateway_url = 'http://localhost:8080/actuator/gateway/routes'
     else:
-        gateway_url = os.environ.get('SERVICES_HOST') + '/actuator/gateway/routes'
+        gateway_url = 'http://' + os.environ.get('SERVICES_HOST') + ':' + \
+                      os.environ.get('SERVICES_PORT') + '/actuator/gateway/routes'
 
     try:
         req = session.get(gateway_url, headers={'Accept': 'application/json'},

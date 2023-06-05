@@ -14,10 +14,10 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 5s
     eureka_sd_configs:
-      - server: http://eureka:8761/eureka
+      - server: http://discovery-svc:8761/eureka
     static_configs:
       - targets:
-        - eureka:8761
+        - discovery-svc:8761
 #        - auth-svc:8080
 #        - product-svc:8080
 #        - order-svc:8080

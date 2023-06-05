@@ -265,27 +265,6 @@ services:
       - "6379:6379"
 
 
-  eureka:
-    build:
-      context: ./eureka
-      dockerfile: Dockerfile
-    image: ntw/eureka
-    container_name: eureka
-    hostname: eureka
-    networks:
-      - mynet1
-    ports:
-      - "8761:8761"
-    env_file: .env
-    environment:
-      - JAVA_OPTIONS=-Xmx512M
-      - server.port=8761
-      - eureka.client.registerWithEureka=false
-      - eureka.client.fetchRegistry=false
-    volumes:
-      - app-logs:/usr/local/tomcat/logs
-
-
   lb-web:
     build:
       context: ./lb-web
@@ -323,7 +302,7 @@ services:
     volumes:
       - app-logs:/var/log/oms
     depends_on:
-      - "gateway-svc"
+      - "gateway"
 
 
   web:
@@ -349,17 +328,38 @@ services:
     depends_on:
       - "fluentd"
 
+      
 
-  services:
+  discovery:
     build:
       context: ./services
       dockerfile: Dockerfile
-    image: ntw/services
-    container_name: services-build
+      args:
+        - SERVICE=discovery
+    image: ntw/discovery-svc
+    container_name: discovery-svc
+    hostname: discovery-svc
+    networks:
+      - mynet1
+    ports:
+      - "8761:8761"
+    env_file: .env
+    environment:
+      - JAVA_OPTIONS=-Xmx512M
+      - server.port=8761
+      - eureka.client.registerWithEureka=false
+      - eureka.client.fetchRegistry=false
+    volumes:
+      - app-logs:/usr/local/tomcat/logs
+    entrypoint: /usr/bin/docker-entrypoint.sh discovery
 
-
-  gateway-svc:
-    image: ntw/services
+  gateway:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        - SERVICE=gateway
+    image: ntw/gateway-svc
     container_name: gateway-svc
     hostname: gateway-svc
     networks:
@@ -384,8 +384,13 @@ services:
     depends_on:
       - "fluentd"
 
-  admin-svc:
-    image: ntw/services
+  admin:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        - SERVICE=admin
+    image: ntw/admin-svc
     container_name: admin-svc
     hostname: admin-svc
     networks:
@@ -408,8 +413,13 @@ services:
     depends_on:
       - "fluentd"
 
-  auth-svc:
-    image: ntw/services
+  auth:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        - SERVICE=auth
+    image: ntw/auth-svc
     container_name: auth-svc
     hostname: auth-svc
     networks:
@@ -431,8 +441,13 @@ services:
     depends_on:
       - "fluentd"
 
-  product-svc:
-    image: ntw/services
+  product:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        - SERVICE=product
+    image: ntw/product-svc
     container_name: product-svc
     hostname: product-svc
     networks:
@@ -454,8 +469,13 @@ services:
     depends_on:
       - "fluentd"
 
-  order-svc:
-    image: ntw/services
+  order:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        - SERVICE=order
+    image: ntw/order-svc
     container_name: order-svc
     hostname: order-svc
     networks:
@@ -479,8 +499,13 @@ services:
       - "fluentd"
       - "rabbitmq"
 
-  inventory-svc:
-    image: ntw/services
+  inventory:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        - SERVICE=inventory
+    image: ntw/inventory-svc
     container_name: inventory-svc
     hostname: inventory-svc
     networks:

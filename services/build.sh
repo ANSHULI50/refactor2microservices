@@ -18,10 +18,11 @@ function do_clean {
 }
 
 function do_build {
-    if [ -n "$1" ]; then
-	cd $1
-    fi
+    if [ -n "$1" ]; then cd $1; fi
     mvn package
+    if [ -n "$1" ]; then
+	cp ./target/$1.war ../target
+    fi
     verify_success $? "maven build"
 }
 

@@ -88,7 +88,7 @@ public class InventoryClientImpl implements InventoryClient {
     }
 
     private ServiceInstance getServiceInstance(String serviceId) {
-        Boolean useLoadBalancer = Boolean.parseBoolean(envConfig.getProperty("eureka.client.fetchRegistry"));
+        boolean useLoadBalancer = Boolean.parseBoolean(envConfig.getProperty("eureka.client.fetchRegistry"));
         if (useLoadBalancer) {
             return loadBalancer.choose(serviceId);
         } else {
@@ -106,9 +106,10 @@ public class InventoryClientImpl implements InventoryClient {
             return retryTemplate.execute(context -> {
                 if (context.getRetryCount() > 0)
                     logger.warn("Retrying reserve inventory request with retry count {}", context.getRetryCount());
-                if (!reserveInventoryCircuitBreaker(inventoryReservation, authHeader))
-                    throw new IOException(new StringBuilder("Failed to execute reserve inventory for ")
-                            .append(inventoryReservation).toString()); // IOException is the signal to retry
+                if (!reserveInventoryCircuitBreaker(inventoryReservation, authHeader, GlobalTracer.get().activeSpan())) {
+                    throw new IOException("Failed to execute reserve inventory for " + inventoryReservation);
+                    // IOException is the signal to retry
+                }
                 return true;
             }, ioException -> {
                 logger.warn("All retry requests for reserve inventory failed");
@@ -119,10 +120,10 @@ public class InventoryClientImpl implements InventoryClient {
         }
     }
 
-    private boolean reserveInventoryCircuitBreaker(InventoryReservation inventoryReservation, String authHeader) {
+    private boolean reserveInventoryCircuitBreaker(InventoryReservation inventoryReservation, String authHeader, Span activeTracingSpan) {
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("inventory-svc-cb");
         return circuitBreaker.run(() -> {
-                    if (!reserveInventoryImpl(inventoryReservation, authHeader))
+                    if (!reserveInventoryImpl(inventoryReservation, authHeader, activeTracingSpan))
                         throw new RuntimeException(); // Runtime exception is the signal for service unavailable
                     return true;
                 },
@@ -134,24 +135,20 @@ public class InventoryClientImpl implements InventoryClient {
         );
     }
 
-    public boolean reserveInventoryImpl(InventoryReservation inventoryReservation, String authHeader) {
+    public boolean reserveInventoryImpl(InventoryReservation inventoryReservation, String authHeader, Span activeTracingSpan) {
         ServiceInstance instance = getServiceInstance(ServiceID.InventorySvc.toString());
         if (instance == null) {
             logger.error("Inventory service configuration not available. Unable to reserve inventory: {}", inventoryReservation);
             return false;
         }
-        StringBuilder url = new StringBuilder()
-                .append("http://").append(instance.getHost()).append(":").append(instance.getPort())
-                .append(AppConfig.INVENTORY_RESOURCE_PATH)
-                .append(AppConfig.INVENTORY_RESERVATION_PATH);
+        String url = "http://" + instance.getHost() + ":" + instance.getPort()
+                + AppConfig.INVENTORY_RESOURCE_PATH + AppConfig.INVENTORY_RESERVATION_PATH;
         String invResJson = (new Gson()).toJson(inventoryReservation);
         RequestBody body = RequestBody.create(invResJson, okhttp3.MediaType.parse("application/json; charset=utf-8"));
-        Request.Builder requestBuilder = new Request.Builder()
-                .url(url.toString())
-                .post(body);
+        Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
         requestBuilder.addHeader("Authorization", authHeader);
         Tracer tracer = GlobalTracer.get();
-        Span invRemoteCallSpan = tracer.buildSpan("reserveInventoryRemote").asChildOf(tracer.activeSpan()).start();
+        Span invRemoteCallSpan = tracer.buildSpan("reserveInventoryRemote").asChildOf(activeTracingSpan).start();
         tracer.inject(invRemoteCallSpan.context(),
                     Format.Builtin.HTTP_HEADERS,
                     new RequestBuilderCarrier(requestBuilder));

@@ -46,19 +46,20 @@ function do_build {
 
     if [ -z "$component" ]; then
 	for component in "services" "web" "spa" "tests"; do
-	    cd $component
+	    cd $OMS_ROOT/$component
 	    ./build.sh build
 	    cd ..
 	done
     else
 	if [ $(is_a_component $component) == "true" ]; then
-	    cd $component
-	    ./build.sh build
+	    cd $OMS_ROOT/$component
+	    ./build.sh
 	    verify_success $? "$component build"
 	    cd ..
 	else
 	    if [ $(is_a_service $component) == "true" ]; then
-		do_build_services $component
+		cd $OMS_ROOT/services
+		./build.sh build $component
 		component="services"
 	    else
 		echo "Error: Incorrect component name $1 to build"

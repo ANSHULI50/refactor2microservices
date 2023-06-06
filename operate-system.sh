@@ -48,7 +48,7 @@ function exec_task {
     container=$2
     cd $OMS_ROOT/docker
 
-    if [ -n $container ]; then
+    if [ -n "$container" ]; then
 	     exec_command $task $container
     else
 	while true; do
@@ -105,6 +105,7 @@ function do_update {
 
     cd $OMS_ROOT
     ./build-system.sh build $component
+    ./build-system.sh images $component
 
     cd $OMS_ROOT/docker
     exec_task start $container

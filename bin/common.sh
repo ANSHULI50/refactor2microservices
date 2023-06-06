@@ -5,7 +5,7 @@ declare -a services=("discovery" "gateway" "admin" "auth" "product" "order" "inv
 
 function is_a_component {
     found_match="false"
-    for components in ${components[@]}; do
+    for component in ${components[@]}; do
 	if [ "$1" == "$component" ]; then found_match="true"; break; fi
     done
     echo $found_match

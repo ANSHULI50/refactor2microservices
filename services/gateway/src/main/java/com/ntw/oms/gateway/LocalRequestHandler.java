@@ -17,11 +17,13 @@
 package com.ntw.oms.gateway;
 
 import com.google.gson.Gson;
+import com.ntw.common.config.EnvConfig;
 import com.ntw.common.config.ServiceID;
 import com.ntw.common.status.ServiceAgent;
 import com.ntw.common.status.ServiceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,12 +35,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LocalRequestHandler {
 
+    @Autowired
+    private EnvConfig envConfig;
+
     private static final Logger logger = LoggerFactory.getLogger(LocalRequestHandler.class);
 
     @GetMapping(path = "/status", produces = MediaType.TEXT_PLAIN_VALUE)
     private ResponseEntity<String> getServiceStatus() {
         logger.debug("Status request received");
-        ServiceStatus status = ServiceAgent.getServiceStatus(ServiceID.GatewaySvc);
+        ServiceStatus status = ServiceAgent.getServiceStatus(ServiceID.GatewaySvc, envConfig);
         logger.debug("Status request response is {}",status);
         String statusStr = new Gson().toJson(status);
         return ResponseEntity.ok(statusStr);

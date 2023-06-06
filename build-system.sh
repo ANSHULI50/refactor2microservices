@@ -45,8 +45,8 @@ function do_build {
     component=$1
 
     if [ -z "$component" ]; then
-	for component in "services" "web" "spa" "tests"; do
-	    cd $OMS_ROOT/$component
+	for this_component in "services" "web" "spa" "tests"; do
+	    cd $OMS_ROOT/$this_component
 	    ./build.sh build
 	    cd ..
 	done

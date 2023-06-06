@@ -16,9 +16,11 @@
 
 package com.ntw.common.status;
 
+import com.ntw.common.config.EnvConfig;
 import com.ntw.common.config.ServiceID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -44,11 +46,12 @@ public class ServiceAgent {
         }
     }
 
-    public static ServiceStatus getServiceStatus(ServiceID serviceID) {
+    public static ServiceStatus getServiceStatus(ServiceID serviceID, EnvConfig envConfig) {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Calcutta"));
         ServiceStatus status = new ServiceStatus(serviceID.toString());
         status.setServiceHost(HOSTNAME);
+        status.setServicePort(Integer.parseInt(envConfig.getProperty("server.port")));
         status.setServiceTime(dateFormat.format(cal.getTime()));
         return status;
     }

@@ -136,33 +136,11 @@ REGISTRY_URL = os.environ.get('REGISTRY_URL','http://localhost:8761/eureka/apps'
 SERVICES_CLIENT_ID = os.environ.get('auth.client.id','web-client')
 SERVICES_CLIENT_SECRET = os.environ.get('auth.client.secret','secret')
 
-HTTP_PROTOCOL = 'http://'
-
-if os.environ.get('SERVICES_HOST') is None:
-    ADMIN_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('ADMIN_SVC_HOST', 'localhost') + ':'
-    AUTH_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('AUTH_SVC_HOST', 'localhost') + ':'
-    PRODUCT_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('PRODUCT_SVC_HOST', 'localhost') + ':'
-    ORDER_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('ORDER_SVC_HOST', 'localhost') + ':'
-    INVENTORY_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('INVENTORY_SVC_HOST', 'localhost') + ':'
-else:
-    ADMIN_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('SERVICES_HOST') + ':'
-    AUTH_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('SERVICES_HOST') + ':'
-    PRODUCT_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('SERVICES_HOST') + ':'
-    ORDER_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('SERVICES_HOST') + ':'
-    INVENTORY_SVC_ORIGIN = HTTP_PROTOCOL + os.environ.get('SERVICES_HOST') + ':'
-
-if os.environ.get('SERVICES_PORT') is None:
-    ADMIN_SVC_ORIGIN += os.environ.get('ADMIN_SVC_PORT', '8081')
-    AUTH_SVC_ORIGIN += os.environ.get('AUTH_SVC_PORT', '8082')
-    PRODUCT_SVC_ORIGIN += os.environ.get('PRODUCT_SVC_PORT', '8083')
-    ORDER_SVC_ORIGIN += os.environ.get('ORDER_SVC_PORT', '8084')
-    INVENTORY_SVC_ORIGIN += os.environ.get('INVENTORY_SVC_PORT', '8085')
-else:
-    ADMIN_SVC_ORIGIN += os.environ.get('SERVICES_PORT')
-    AUTH_SVC_ORIGIN += os.environ.get('SERVICES_PORT')
-    PRODUCT_SVC_ORIGIN += os.environ.get('SERVICES_PORT')
-    ORDER_SVC_ORIGIN += os.environ.get('SERVICES_PORT')
-    INVENTORY_SVC_ORIGIN += os.environ.get('SERVICES_PORT')
+ADMIN_SVC_ORIGIN = os.environ.get('SERVICES_ORIGIN', 'http://localhost:8081')
+AUTH_SVC_ORIGIN = os.environ.get('SERVICES_ORIGIN', 'http://localhost:8082')
+PRODUCT_SVC_ORIGIN = os.environ.get('SERVICES_ORIGIN', 'http://localhost:8083')
+ORDER_SVC_ORIGIN = os.environ.get('SERVICES_ORIGIN', 'http://localhost:8084')
+INVENTORY_SVC_ORIGIN = os.environ.get('SERVICES_ORIGIN', 'http://localhost:8085')
 
 HTTP_TIMEOUT = 20
 HTTP_SAMPLE_DATA_TIMEOUT = 120

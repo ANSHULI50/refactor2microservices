@@ -17,6 +17,7 @@
 package com.ntw.oms.admin.service;
 
 import com.ntw.common.config.AppConfig;
+import com.ntw.common.config.EnvConfig;
 import com.ntw.common.config.ServiceID;
 import com.ntw.common.status.DatabaseStatus;
 import com.ntw.common.status.ServiceAgent;
@@ -37,6 +38,9 @@ import java.util.List;
 @RestController
 public class AdminServiceAgent extends ServiceAgent {
 
+    @Autowired
+    private EnvConfig envConfig;
+
     private static final Logger logger = LoggerFactory.getLogger(AdminServiceAgent.class);
 
     @Autowired
@@ -45,7 +49,7 @@ public class AdminServiceAgent extends ServiceAgent {
     @GetMapping(path = AppConfig.STATUS_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getServiceStatus() {
         logger.debug("Status request received");
-        ServiceStatus status = getServiceStatus(ServiceID.AdminSvc);
+        ServiceStatus status = getServiceStatus(ServiceID.AdminSvc, envConfig);
         logger.debug("Status request response is {}",status);
         return ResponseEntity.ok().body(status.toJson());
     }

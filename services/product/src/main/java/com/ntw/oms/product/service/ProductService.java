@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URISyntaxException;
 import java.util.List;
@@ -60,11 +61,20 @@ public class ProductService {
     @GetMapping(produces = "application/json")
     public ResponseEntity<List<Product>> getProducts() {
         logger.debug("Request for get products");
-        List<Product> products = getProductServiceBean().getProducts();
-        logger.info("Fetched {} products", products.size());
-        if (products.size() > 0) {
+        List<Product> products = null;
+        try {
+            products = getProductServiceBean().getProducts();
+        } catch (Exception e) {
+            logger.error("exception fetching products: ", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "exception fetching products");
+        }
+        if (products != null && products.size() > 0) {
+            logger.info("Fetched {} products", products.size());
             // Avoid a large log of products - print just one
             logger.info("First product; context={}", products.get(0));
+        } else {
+            logger.info("No products found");
         }
         return new ResponseEntity<>(products, HttpStatus.OK);
     }

@@ -93,8 +93,17 @@ function do_images {
 
     echo "-- Build Docker Images --"
     cd $OMS_ROOT/docker
-    docker-compose build $1
-    verify_success $? "$1 docker image"
+    if [ -z "$1" ]; then
+	docker-compose build
+	verify_success $? "All docker images"
+    elif [ "$1" == "services" ]; then
+	for service in ${services[@]}; do
+	    docker-compose build $service
+	done
+    else
+	docker-compose build $1
+	verify_success $? "$1 docker image"
+    fi
 
     if [ -z "$1" ] || [ "$1" == "tests" ]; then
 	cd $OMS_ROOT/docker/jmeter

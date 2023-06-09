@@ -49,6 +49,11 @@ public class ProductMockDao implements ProductDao {
     }
 
     @Override
+    public List<String> getProductIds() {
+        return null;
+    }
+
+    @Override
     public List<Product> getProducts(List<String> ids) {
         return null;
     }

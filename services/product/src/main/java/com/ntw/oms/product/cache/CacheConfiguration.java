@@ -1,4 +1,4 @@
-package com.ntw.oms.product;
+package com.ntw.oms.product.cache;
 
 import com.ntw.oms.product.entity.Product;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +10,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
 
@@ -41,12 +42,23 @@ public class CacheConfiguration {
         return jedisConFactory;
     }
 
-    @Bean
+    @Bean("productRedisTemplate")
     @ConditionalOnProperty(name = "redis.enabled", havingValue = "true")
-    RedisTemplate<String, Product> redisProductTemplate() {
-        RedisTemplate<String, Product> redisTemplate = new RedisTemplate<>();
+    RedisTemplate<ProductKey, Product> redisProductTemplate() {
+        RedisTemplate<ProductKey, Product> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(jedisConnectionFactory());
+        redisTemplate.setKeySerializer(new ProductKeySerializer());
+        redisTemplate.setValueSerializer(new ProductSerializer());
         return redisTemplate;
     }
 
+    @Bean("productKeyRedisTemplate")
+    @ConditionalOnProperty(name = "redis.enabled", havingValue = "true")
+    RedisTemplate<String, ProductKey> redisProductMapTemplate() {
+        RedisTemplate<String, ProductKey> redisMapTemplate = new RedisTemplate<>();
+        redisMapTemplate.setConnectionFactory(jedisConnectionFactory());
+        redisMapTemplate.setKeySerializer(new StringRedisSerializer());
+        redisMapTemplate.setValueSerializer(new ProductKeySerializer());
+        return redisMapTemplate;
+    }
 }

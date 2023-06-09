@@ -77,6 +77,24 @@ public class DBProductDao implements ProductDao {
     }
 
     @Override
+    public List<String> getProductIds() {
+        String allProductCql = "select id from Product";
+        List<String> productIds;
+        try {
+            productIds = getCassandraOperations().select(allProductCql, String.class);
+        } catch (Exception e) {
+            logger.error("Exception when fetching products", e);
+            return null;
+        }
+        if (productIds.isEmpty()) {
+            logger.error("Unable to get Products; context={}", allProductCql);
+            return new LinkedList<>();
+        }
+        logger.debug("Fetched all products; context={}", productIds);
+        return productIds;
+    }
+
+    @Override
     public List<Product> getProducts(List<String> ids) {
         List<Product> products = new LinkedList<>();
         ids.forEach(id -> products.add(getProduct(id)));
